@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const fs_1 = require("fs");
 const levelup_1 = __importDefault(require("levelup"));
 const leveldown = require('leveldown');
 const DEFAULTSEPARATOR = '/';
@@ -35,13 +36,25 @@ function getSinceBatch(db, prefix, epoch) {
     });
 }
 exports.getSinceBatch = getSinceBatch;
-function serve(db, port) {
+function reqToUser(req, config) {
+    const user = req.get('X-Level-Family-User');
+    const token = req.get('X-Level-Family-Token');
+    if (user && token && config.tokens[user] && config.tokens[user] === token) {
+        return user;
+    }
+    return '';
+}
+function serve(db, port, config) {
     const app = express_1.default();
     app.use(express_1.default.json());
     app.get('/', (req, res) => res.send('Post `{user, app, payload}` to /.'));
     app.post('/', (req, res) => {
         const { payload, user, app } = req.body;
-        if (payload && user && app) {
+        const authUser = reqToUser(req, config);
+        if (!(user && authUser && user === authUser)) {
+            res.sendStatus(401);
+        }
+        else if (payload && user && app) {
             res.sendStatus(200);
             write(db, user + DEFAULTSEPARATOR + app, payload);
         }
@@ -51,7 +64,11 @@ function serve(db, port) {
     });
     app.get('/since', (req, res) => __awaiter(this, void 0, void 0, function* () {
         const { since, user, app } = req.query;
-        if (since && user && app) {
+        const authUser = reqToUser(req, config);
+        if (!(user && authUser && user === authUser)) {
+            res.sendStatus(401);
+        }
+        else if (since && user && app) {
             res.json(yield getSinceBatch(db, user + DEFAULTSEPARATOR + app, since));
         }
         else {
@@ -62,5 +79,6 @@ function serve(db, port) {
 }
 exports.serve = serve;
 if (module === require.main) {
-    const server = serve(setup('default-db'), 4321);
+    const config = JSON.parse(fs_1.readFileSync('.env', 'utf8'));
+    const server = serve(setup('default-db'), 4321, config);
 }
