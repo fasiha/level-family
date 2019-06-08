@@ -79,6 +79,6 @@ function serve(db, port, config) {
 }
 exports.serve = serve;
 if (module === require.main) {
-    const config = JSON.parse(fs_1.readFileSync('.env', 'utf8'));
+    const config = JSON.parse(fs_1.readFileSync('.data/config.json', 'utf8'));
     const server = serve(setup('default-db'), 4321, config);
 }

@@ -61,6 +61,6 @@ export function serve(db: LevelUp<any>, port: number, config: any) {
   return app.listen(port, () => console.log(`Express listening on port ${port}!`));
 }
 if (module === require.main) {
-  const config = JSON.parse(readFileSync('.env', 'utf8'));
+  const config = JSON.parse(readFileSync('.data/config.json', 'utf8'));
   const server = serve(setup('default-db'), 4321, config);
 }
