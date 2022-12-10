@@ -11,7 +11,7 @@
   "author": "",
   "license": "Unlicense",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "leveldown": "^5.1.0",
     "levelup": "^4.0.1",
     "mkdirp": "^0.5.1"
